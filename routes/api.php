@@ -17,8 +17,10 @@ Route::prefix('auth')->group(function () {
 
     Route::get('me', [AuthController::class, 'me'])
         ->middleware('auth:sanctum');
-});
 
+    Route::post('logout', [AuthController::class, 'logout'])
+        ->middleware('auth:sanctum');
+});
 
 //categorie
 Route::prefix('categories')->group(function () {
@@ -32,6 +34,11 @@ Route::prefix('categories')->group(function () {
     Route::patch('/{id}/toggle', [CategoryController::class, 'toggle']);
     Route::delete('/{id}', [CategoryController::class, 'destroy']);
 });
+// annonces - routes complémentaires
+Route::put('/annonces/{id}', [AdController::class, 'update'])->middleware('auth:sanctum');
+Route::delete('/annonces/{id}', [AdController::class, 'destroy'])->middleware('auth:sanctum');
+Route::post('/annonces/{id}/view', [AdController::class, 'incrementView']);
+Route::get('/annonces/mine', [AdController::class, 'mine'])->middleware('auth:sanctum');
 
 
 // type cat 
