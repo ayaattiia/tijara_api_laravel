@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $table = 'Category'; // ou 'categories' selon ta DB
+    protected $table = 'categories';
 
     protected $primaryKey = 'IdCateg';
 
-    public $timestamps = false; // si ta table n'a pas created_at / updated_at
+    public $timestamps = false;
 
     protected $fillable = [
         'TitleEn',
@@ -18,8 +18,12 @@ class Category extends Model
         'TitleAr',
         'Description',
         'Image',
-        'Idtypecat',
+        'idtypecat',
         'Active'
     ];
-    //
+
+    public function type()
+    {
+        return $this->belongsTo(TypeCategorie::class, 'idtypecat', 'Idtypecat');
+    }
 }

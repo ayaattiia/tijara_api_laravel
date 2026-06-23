@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TypeCategorieController;
 
 
 // auth
@@ -20,9 +21,37 @@ Route::prefix('auth')->group(function () {
 
 
 //categorie
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/types', [CategoryController::class, 'types']);
-Route::get('/categories/{id}', [CategoryController::class, 'show']);
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class, 'index']);
+    Route::get('/all', [CategoryController::class, 'all']);
+    Route::get('/types', [CategoryController::class, 'types']);
+    Route::get('/{id}', [CategoryController::class, 'show']);
+
+    Route::post('/', [CategoryController::class, 'store']);
+    Route::put('/{id}', [CategoryController::class, 'update']);
+    Route::patch('/{id}/toggle', [CategoryController::class, 'toggle']);
+    Route::delete('/{id}', [CategoryController::class, 'destroy']);
+});
+
+
+// type cat 
+// Route::get('/typecategories', function () {
+//     return \App\Models\TypeCategorie::all();
+// });
+
+Route::prefix('typecategories')->group(function () {
+
+    Route::get('/', [TypeCategorieController::class, 'index']);
+    Route::get('/all', [TypeCategorieController::class, 'all']);
+    Route::get('/{id}', [TypeCategorieController::class, 'show']);
+
+    Route::post('/', [TypeCategorieController::class, 'store']);
+    Route::put('/{id}', [TypeCategorieController::class, 'update']);
+
+    Route::patch('/{id}/toggle', [TypeCategorieController::class, 'toggle']);
+    Route::delete('/{id}', [TypeCategorieController::class, 'destroy']);
+});
+
 
 
 
