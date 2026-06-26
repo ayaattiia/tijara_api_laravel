@@ -1,85 +1,194 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\AuthController;
-// use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TypeCategorieController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\TypeCategorieController;
+use App\Http\Controllers\Api\DeliveriesController;
+use App\Http\Controllers\Api\InvoicesController;
+use App\Http\Controllers\Api\PaymentsController;
+use App\Http\Controllers\Api\NotificationsController;
+use App\Http\Controllers\Api\ReviewsController;
+use App\Http\Controllers\Api\ReportsController;
+use App\Http\Controllers\Api\TransportsController;
+
+// AUTH
 
 
-// auth
 Route::prefix('auth')->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('login',    [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
 
-    Route::get('me', [AuthController::class, 'me'])
-        ->middleware('auth:sanctum');
-
-    Route::post('logout', [AuthController::class, 'logout'])
-        ->middleware('auth:sanctum');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('me', [AuthController::class, 'me']);
+    });
 });
 
-//categorie
-Route::prefix('categories')->group(function () {
-    Route::get('/', [CategoryController::class, 'index']);
-    Route::get('/all', [CategoryController::class, 'all']);
-    Route::get('/types', [CategoryController::class, 'types']);
-    Route::get('/{id}', [CategoryController::class, 'show']);
+// TYPE CATEGORIES
 
-    Route::post('/', [CategoryController::class, 'store']);
-    Route::put('/{id}', [CategoryController::class, 'update']);
-    Route::patch('/{id}/toggle', [CategoryController::class, 'toggle']);
-    Route::delete('/{id}', [CategoryController::class, 'destroy']);
-});
-// annonces - routes complémentaires
-Route::put('/annonces/{id}', [AdController::class, 'update'])->middleware('auth:sanctum');
-Route::delete('/annonces/{id}', [AdController::class, 'destroy'])->middleware('auth:sanctum');
-Route::post('/annonces/{id}/view', [AdController::class, 'incrementView']);
-Route::get('/annonces/mine', [AdController::class, 'mine'])->middleware('auth:sanctum');
-
-
-// type cat 
-// Route::get('/typecategories', function () {
-//     return \App\Models\TypeCategorie::all();
-// });
 
 Route::prefix('typecategories')->group(function () {
 
-    Route::get('/', [TypeCategorieController::class, 'index']);
-    Route::get('/all', [TypeCategorieController::class, 'all']);
-    Route::get('/{id}', [TypeCategorieController::class, 'show']);
+    // Public reads
+    Route::get('/',       [TypeCategorieController::class, 'index']);
+    Route::get('/all',    [TypeCategorieController::class, 'all']);
+    Route::get('/{id}',   [TypeCategorieController::class, 'show']);
 
-    Route::post('/', [TypeCategorieController::class, 'store']);
-    Route::put('/{id}', [TypeCategorieController::class, 'update']);
+    // Protected writes (admin)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/',              [TypeCategorieController::class, 'store']);
+        Route::put('/{id}',           [TypeCategorieController::class, 'update']);
+        Route::patch('/{id}/toggle',  [TypeCategorieController::class, 'toggle']);
+        Route::delete('/{id}',        [TypeCategorieController::class, 'destroy']);
+    });
+});
 
-    Route::patch('/{id}/toggle', [TypeCategorieController::class, 'toggle']);
-    Route::delete('/{id}', [TypeCategorieController::class, 'destroy']);
+// CATEGORIES
+
+
+Route::prefix('categories')->group(function () {
+
+    // Public reads
+    Route::get('/',        [CategoryController::class, 'index']);
+    Route::get('/all',     [CategoryController::class, 'all']);
+    Route::get('/types',   [CategoryController::class, 'types']);
+    Route::get('/{id}',    [CategoryController::class, 'show']);
+
+    // Protected writes (admin)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/',             [CategoryController::class, 'store']);
+        Route::put('/{id}',          [CategoryController::class, 'update']);
+        Route::patch('/{id}/toggle', [CategoryController::class, 'toggle']);
+        Route::delete('/{id}',       [CategoryController::class, 'destroy']);
+    });
+});
+
+
+// ADS (ANNONCES)
+
+
+Route::get('/annonces',              [AdController::class, 'index']);
+Route::get('/annonces/{id}',         [AdController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/annonces',                [AdController::class, 'store']);
+    Route::post('/annonces/{id}/like',      [AdController::class, 'like']);
+    Route::post('/annonces/{id}/comments',  [AdController::class, 'comment']);
+});
+
+
+// PRODUCTS
+
+
+Route::get('/products',                         [ProductController::class, 'index']);
+Route::get('/products/vendor/{vendorId}',        [ProductController::class, 'vendorProfile']);
+Route::get('/products/{id}',                    [ProductController::class, 'show']);
+Route::get('/products/{id}/reviews',            [ProductController::class, 'reviews']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/products/mine',                        [ProductController::class, 'mine']);
+    Route::post('/products',                            [ProductController::class, 'store']);
+    Route::put('/products/{id}',                        [ProductController::class, 'update']);
+    Route::patch('/products/{id}/status',               [ProductController::class, 'toggleStatus']);
+    Route::delete('/products/{id}',                     [ProductController::class, 'destroy']);
+    Route::post('/products/{id}/reviews',               [ProductController::class, 'addReview']);
+    Route::delete('/products/{id}/reviews/{reviewId}',  [ProductController::class, 'deleteReview']);
+});
+
+
+// TRANSPORTS
+
+
+Route::get('/transports',       [TransportsController::class, 'index']);
+Route::get('/transports/{id}',  [TransportsController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/transports',              [TransportsController::class, 'store']);
+    Route::put('/transports/{id}',          [TransportsController::class, 'update']);
+    Route::patch('/transports/{id}/toggle', [TransportsController::class, 'toggle']);
+    Route::delete('/transports/{id}',       [TransportsController::class, 'destroy']);
+});
+
+// REVIEWS
+// NOTE: /summary and /my MUST come before /{id} to avoid wildcard collision
+
+
+
+Route::get('/reviews',          [ReviewsController::class, 'index']);
+Route::get('/reviews/summary',  [ReviewsController::class, 'summary']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/reviews/my',       [ReviewsController::class, 'myReviews']);
+    Route::post('/reviews',         [ReviewsController::class, 'store']);
+    Route::delete('/reviews/{id}',  [ReviewsController::class, 'destroy']);
+});
+
+
+// ORDERS
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/orders',                   [OrderController::class, 'index']);
+    Route::get('/orders/{id}',              [OrderController::class, 'show']);
+    Route::post('/orders',                  [OrderController::class, 'store']);
+    Route::patch('/orders/{id}/status',     [OrderController::class, 'updateStatus']);
 });
 
 
 
-
-//annonce
-Route::get('/annonces', [AdController::class, 'index']);
-Route::get('/annonces/{id}', [AdController::class, 'show']);
-Route::post('/annonces', [AdController::class, 'store'])->middleware('auth:sanctum');
-Route::post('/annonces/{id}/like', [AdController::class, 'like'])->middleware('auth:sanctum');
-Route::post('/annonces/{id}/comments', [AdController::class, 'comment'])->middleware('auth:sanctum');
-
-//product
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{id}', [ProductController::class, 'show']);
-Route::post('/products', [ProductController::class, 'store'])->middleware('auth:sanctum');
-
-//order
-Route::get('/orders', [OrderController::class, 'index'])->middleware('auth:sanctum');
-Route::post('/orders', [OrderController::class, 'store'])->middleware('auth:sanctum');
-Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus'])->middleware('auth:sanctum');
+// INVOICES
+// NOTE: /from-order/{idOrder} MUST come before /{id}
 
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/invoices',                             [InvoicesController::class, 'index']);
+    Route::post('/invoices/from-order/{idOrder}',       [InvoicesController::class, 'fromOrder']);
+    Route::get('/invoices/{id}',                        [InvoicesController::class, 'show']);
+    Route::patch('/invoices/{id}/paid',                 [InvoicesController::class, 'markPaid']);
+});
+
+// PAYMENTS
+// NOTE: /mine MUST come before the generic GET /payments (admin list)
 
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/payments/mine',            [PaymentsController::class, 'mine']);
+    Route::get('/payments',                 [PaymentsController::class, 'index']);
+    Route::post('/payments',                [PaymentsController::class, 'store']);
+    Route::post('/payments/{id}/refund',    [PaymentsController::class, 'refund']);
+});
 
+
+// DELIVERIES
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/deliveries',               [DeliveriesController::class, 'index']);
+    Route::post('/deliveries',              [DeliveriesController::class, 'store']);
+    Route::put('/deliveries/{id}',          [DeliveriesController::class, 'update']);
+    Route::patch('/deliveries/{id}/status', [DeliveriesController::class, 'updateStatus']);
+});
+
+
+// NOTIFICATIONS
+// NOTE: /read-all MUST come before /{id}/read
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications',                    [NotificationsController::class, 'index']);
+    Route::patch('/notifications/read-all',         [NotificationsController::class, 'markAllRead']);
+    Route::patch('/notifications/{id}/read',        [NotificationsController::class, 'markRead']);
+});
+
+// REPORTS  (auth:sanctum — role checks handled inside each method)
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/reports/overview',         [ReportsController::class, 'overview']);
+    Route::get('/reports/sales-by-month',   [ReportsController::class, 'salesByMonth']);
+    Route::get('/reports/top-products',     [ReportsController::class, 'topProducts']);
+    Route::get('/reports/top-customers',    [ReportsController::class, 'topCustomers']);
+});
