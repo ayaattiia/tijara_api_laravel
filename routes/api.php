@@ -8,6 +8,7 @@ use App\Http\Controllers\AdController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TypeCategorieController;
+use App\Http\Controllers\WishlistController;
 
 
 // auth
@@ -21,7 +22,14 @@ Route::prefix('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])
         ->middleware('auth:sanctum');
 });
-
+// Wishlist (favoris)
+Route::get('/wishlist/ads', [WishlistController::class, 'index']);
+Route::post('/wishlist/ads/{adId}', [WishlistController::class, 'add']);
+Route::delete('/wishlist/ads/{adId}', [WishlistController::class, 'remove']);
+Route::get('/wishlist/check', [WishlistController::class, 'check']);
+Route::get('/test', function () {
+    return ['message' => 'API is working'];
+});
 //categorie
 Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
