@@ -6,15 +6,20 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TypeCategorieController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\OrderController;
+
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\OrdersController;
 use App\Http\Controllers\Api\DeliveriesController;
 use App\Http\Controllers\Api\InvoicesController;
+use App\Http\Controllers\Api\PreInvoiceController;
+use App\Http\Controllers\Api\DealController;
+use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\PaymentsController;
 use App\Http\Controllers\Api\NotificationsController;
 use App\Http\Controllers\Api\ReviewsController;
 use App\Http\Controllers\Api\ReportsController;
 use App\Http\Controllers\Api\TransportsController;
+
 
 // AUTH
 
@@ -132,10 +137,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/orders',                   [OrderController::class, 'index']);
-    Route::get('/orders/{id}',              [OrderController::class, 'show']);
-    Route::post('/orders',                  [OrderController::class, 'store']);
-    Route::patch('/orders/{id}/status',     [OrderController::class, 'updateStatus']);
+    Route::get('/orders',                   [OrdersController::class, 'index']);
+    Route::get('/orders/{id}',              [OrdersController::class, 'show']);
+    Route::post('/orders',                  [OrdersController::class, 'store']);
+    Route::patch('/orders/{id}/status',     [OrdersController::class, 'updateStatus']);
 });
 
 
@@ -143,6 +148,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // INVOICES
 // NOTE: /from-order/{idOrder} MUST come before /{id}
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/invoices/{id}',           [InvoicesController::class, 'update']);
+    Route::patch('/invoices/{id}/cancel',  [InvoicesController::class, 'cancel']);
+    Route::get('/invoices/{id}/pdf',       [InvoicesController::class, 'pdf']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invoices',                             [InvoicesController::class, 'index']);
@@ -177,6 +187,10 @@ Route::middleware('auth:sanctum')->group(function () {
 // NOTIFICATIONS
 // NOTE: /read-all MUST come before /{id}/read
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy']);
+});
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications',                    [NotificationsController::class, 'index']);
@@ -191,4 +205,67 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/sales-by-month',   [ReportsController::class, 'salesByMonth']);
     Route::get('/reports/top-products',     [ReportsController::class, 'topProducts']);
     Route::get('/reports/top-customers',    [ReportsController::class, 'topCustomers']);
+});
+// ── SUPPLIERS (fournisseurs) ─────────────────────────────────────
+Route::get('/suppliers',                  [SupplierController::class, 'index']);
+Route::get('/suppliers/{id}',             [SupplierController::class, 'show']);
+Route::get('/suppliers/{id}/products',    [SupplierController::class, 'products']);
+Route::get('/suppliers/{id}/reviews',     [SupplierController::class, 'reviews']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/suppliers/{id}/history', [SupplierController::class, 'history']);
+    Route::put('/suppliers/{id}',         [SupplierController::class, 'update']);
+});
+
+// ── PRE-INVOICES ──────────────────────────────────────────────────
+// NOTE: /pre-invoices/{id}/pdf etc. MUST come after the literal action routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/pre-invoices',                    [PreInvoiceController::class, 'index']);
+    Route::post('/pre-invoices',                   [PreInvoiceController::class, 'store']);
+    Route::get('/pre-invoices/{id}',                [PreInvoiceController::class, 'show']);
+    Route::put('/pre-invoices/{id}',                [PreInvoiceController::class, 'update']);
+    Route::post('/pre-invoices/{id}/submit',        [PreInvoiceController::class, 'submit']);
+    Route::post('/pre-invoices/{id}/approve',       [PreInvoiceController::class, 'approve']);
+    Route::post('/pre-invoices/{id}/reject',        [PreInvoiceController::class, 'reject']);
+    Route::post('/pre-invoices/{id}/convert',       [PreInvoiceController::class, 'convert']);
+    Route::get('/pre-invoices/{id}/pdf',            [PreInvoiceController::class, 'pdf']);
+});
+// DEALS
+// NOTE: /deals/{id}/reviews, /stock, /status, /print, /barcode, /qrcode
+// MUST come after the CRUD routes where appropriate.
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // CRUD
+    Route::get('/deals',                          [DealController::class, 'index']);
+    Route::post('/deals',                         [DealController::class, 'store']);
+    Route::get('/deals/{id}',                     [DealController::class, 'show']);
+    Route::put('/deals/{id}',                     [DealController::class, 'update']);
+    Route::delete('/deals/{id}',                  [DealController::class, 'destroy']);
+
+    // Product Status
+    Route::patch('/deals/{id}/status',            [DealController::class, 'updateStatus']);
+
+    // Stock Management
+    Route::patch('/deals/{id}/stock',             [DealController::class, 'updateStock']);
+
+    // Vendor Products
+    Route::get('/vendors/{id}/deals',             [DealController::class, 'vendorDeals']);
+
+    // Reviews
+    Route::get('/deals/{id}/reviews',             [DealController::class, 'reviews']);
+    Route::post('/deals/{id}/reviews',            [DealController::class, 'addReview']);
+    Route::delete('/deals/{id}/reviews/{review}', [DealController::class, 'deleteReview']);
+
+    // Product Printing
+    Route::get('/deals/{id}/print',               [DealController::class, 'print']);
+
+    // Barcode
+    Route::get('/deals/{id}/barcode',             [DealController::class, 'barcode']);
+
+    // QR Code
+    Route::get('/deals/{id}/qrcode',              [DealController::class, 'qrcode']);
+
+    // Product URLs
+    Route::get('/deals/{id}/url',                 [DealController::class, 'url']);
 });
