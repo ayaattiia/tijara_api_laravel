@@ -7,18 +7,35 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * PRIORITÉ 1 — CORRIGÉE
+     *
+     * La migration originale utilisait le schéma Laravel par défaut (id, name, email).
+     * Or TOUTES les autres tables du projet (Orders, Deals, Invoices, Payments,
+     * Notifications, Reviews, Deliveries, Suppliers, PreInvoices) déclarent une
+     * clé étrangère vers Users.IdUser qui n'existait pas → php artisan migrate
+     * plantait immédiatement sur la première contrainte FK rencontrée.
+     *
+     * Cette migration fournit le vrai schéma attendu par tout le projet.
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+        Schema::create('Users', function (Blueprint $table) {
+            $table->id('IdUser');
+            $table->string('FirstName', 100);
+            $table->string('LastName', 100);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('Telephone', 50)->nullable();
+            $table->string('Address', 255)->nullable();
+            // Role: 'admin' | 'vendor' | 'user'
+            $table->string('Role', 20)->default('user');
+            $table->tinyInteger('Active')->default(1);
             $table->rememberToken();
-            $table->timestamps();
+            $table->timestamp('CreatedAt')->useCurrent();
+            $table->timestamp('UpdatedAt')->nullable();
+
+            $table->index(['Role', 'Active']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -37,12 +54,9 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('Users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

@@ -28,7 +28,8 @@ return new class extends Migration
 
             // Foreign Key Constraints based on your model's relationships
             $table->foreign('IdUser')->references('IdUser')->on('Users')->onDelete('cascade');
-            $table->foreign('IdCategory')->references('IdCateg')->on('Category')->onDelete('cascade');
+            // PRIORITÉ 2 CORRIGÉE : 'Category' n'existe pas → la vraie table s'appelle 'categories'
+            $table->foreign('IdCategory')->references('IdCateg')->on('categories')->onDelete('cascade');
         });
     }
 

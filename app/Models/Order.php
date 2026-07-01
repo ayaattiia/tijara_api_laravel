@@ -23,30 +23,46 @@ class Order extends Model
         'DateTimeCommand' => 'datetime',
     ];
 
-    // Status constants
+    // ── Status constants ──────────────────────────────────────────
+    const STATUS_CANCELLED = 0;
     const STATUS_PENDING   = 1;
     const STATUS_DELIVERED = 2;
     const STATUS_CONFIRMED = 3;
-    const STATUS_CANCELLED = 0;
+    const STATUS_REJECTED  = 4;
 
-    // Computed status label
     public function getStatusAttribute(): string
     {
         return match ((int) $this->Active) {
             self::STATUS_DELIVERED => 'delivered',
             self::STATUS_CONFIRMED => 'confirmed',
             self::STATUS_CANCELLED => 'cancelled',
+            self::STATUS_REJECTED  => 'rejected',
             default                => 'pending',
         };
     }
 
-    // Relationships
+    // ── Relationships ────────────────────────────────────────────
 
     public function user()
     {
         return $this->belongsTo(User::class, 'IdUser', 'IdUser');
     }
 
+    /**
+     * AJOUTÉ — relation deal() manquante.
+     * Orders référence IdDeal → Deals, mais Order.php n'avait pas cette relation.
+     * Tous les eager-loads ->with('deal') dans OrdersController échouaient silencieusement.
+     */
+    public function deal()
+    {
+        return $this->belongsTo(Deal::class, 'IdDeal', 'IdDeal');
+    }
+
+    /** Alias : product() → même relation, pour compatibilité avec les routes /products */
+    public function product()
+    {
+        return $this->deal();
+    }
 
     public function detail()
     {
@@ -66,5 +82,10 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class, 'IdOrder', 'IdOrder');
+    }
+
+    public function preInvoice()
+    {
+        return $this->hasOne(PreInvoice::class, 'IdOrder', 'IdOrder');
     }
 }

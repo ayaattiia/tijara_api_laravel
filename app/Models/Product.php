@@ -2,48 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
-class Product extends Model
+/**
+ * PRIORITÉ 1 — CATALOGUE UNIFIÉ
+ *
+ * Décision : "Deals" est le catalogue réel du projet (c'est ce que Orders,
+ * Invoices et Deliveries référencent via IdDeal). "Products" était un stub vide
+ * jamais utilisé par aucune commande ni facture.
+ *
+ * Solution retenue : Product est maintenant un alias de Deal pour éviter de
+ * casser les routes /products déjà câblées dans api.php. ProductController
+ * continue de fonctionner mais opère sur la table Deals. Les deux APIs
+ * (/products et /deals) pointent désormais sur la même vraie table.
+ */
+class Product extends Deal
 {
-    protected $table      = 'Products';
-    protected $primaryKey = 'IdProduct';
-    public    $timestamps = false;
-
-    protected $fillable = [
-        'IdUser',
-        'IdCategory',
-        'Name',
-        'Description',
-        'Price',
-        'Stock',
-        'ImageUrl',
-        'Active',
-        'CreatedAt',
-    ];
-
-    protected $casts = [
-        'Price'     => 'float',
-        'Stock'     => 'integer',
-        'Active'    => 'boolean',
-        'CreatedAt' => 'datetime',
-    ];
-
-    // Relationships
-
-    public function owner()
-    {
-        return $this->belongsTo(User::class, 'IdUser', 'IdUser');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class, 'IdCategory', 'IdCategory');
-    }
-
-    public function reviews()
-    {
-        return $this->hasMany(Review::class, 'TargetId', 'IdProduct')
-            ->where('TargetType', 'product');
-    }
+    // Hérite de tout : table Deals, primaryKey IdDeal, fillable, relations, casts.
+    // Aucun doublon de table, aucune migration supplémentaire nécessaire.
 }
